@@ -1505,7 +1505,7 @@ class EfficientVSSM_2(nn.Module):
         return x
 
 # compatible with openmmlab
-class Backbone_EfficientVSSM(EfficientVSSM):
+class Backbone_EfficientVSSM(EfficientVSSM_2):
     def __init__(self, out_indices=(0, 1, 2, 3), pretrained=None, norm_layer=nn.LayerNorm, **kwargs):
         kwargs.update(norm_layer=norm_layer)
         super().__init__(**kwargs)

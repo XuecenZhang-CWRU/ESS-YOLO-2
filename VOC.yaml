@@ -1,6 +1,6 @@
-train: ./VOC/images/train # train images
-val: ./VOC/images/val # val images
-test: ./VOC/images/test # test images (optional)
+train: /home/zhangxc/projects/datasets/VOC/images/train2007 # train images
+val: /home/zhangxc/projects/datasets/VOC/images/val2007 # val images
+test: /home/zhangxc/projects/datasets/VOC/images/test2007 # test images (optional)
 
 names: ['c17', 'c5', 'helicopter', 'c130', 'f16', 'b2',
     'other', 'b52', 'kc10', 'command', 'f15', 'kc135', 'a10',

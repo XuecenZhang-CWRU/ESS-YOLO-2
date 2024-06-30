@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.modules import (
+    EfficientMambaAttention,
     SF,
     DySample,
     BiFPN_Concat,
@@ -999,6 +1000,9 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             args = gg
         elif m is CBFuse:
             c2 = ch[f[-1]]
+        elif m is EfficientMambaAttention:
+            args = [ch[f], *args]
+            print(args)
         else:
             c2 = ch[f]
 

@@ -22,6 +22,7 @@ from .vmamba_efficient import (
     EfficientMamba_B,
 )
 from .block import (
+    EfficientMambaAttention,
     SF,
     BiFPN_Concat,
     C1,
@@ -90,6 +91,7 @@ from .transformer import (
 )
 from .dysample import DySample
 __all__ = (
+    "EfficientMambaAttention",
     "SF",
     "DySample",
     "BiFPN_Concat",
