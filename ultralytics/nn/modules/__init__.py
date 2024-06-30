@@ -22,6 +22,8 @@ from .vmamba_efficient import (
     EfficientMamba_B,
 )
 from .block import (
+    SF,
+    BiFPN_Concat,
     C1,
     C2,
     C3,
@@ -86,8 +88,11 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
-
+from .dysample import DySample
 __all__ = (
+    "SF",
+    "DySample",
+    "BiFPN_Concat",
     "EfficientMamba_T",
     "EfficientMamba_S",
     "EfficientMamba_B",

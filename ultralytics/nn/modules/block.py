@@ -46,8 +46,70 @@ __all__ = (
     "Attention",
     "PSA",
     "SCDown",
+    "BiFPN_Concat",
 )
+class BiFPN_Concat(nn.Module):
+    def __init__(self, dimension=1, weight_count=2):
+        super(BiFPN_Concat, self).__init__()
+        # 初始化维度，默认为1，表示将在哪个维度上进行拼接操作
+        self.d = dimension
+        # 初始化权重个数，默认为2，表示要处理的分支数量
+        self.w_count = weight_count
+        # 初始化可学习的权重参数，初始值均为1，并设置requires_grad=True以便在训练过程中更新
+        self.w = nn.Parameter(torch.ones(self.w_count, dtype=torch.float32), requires_grad=True)
+        # 定义一个小的正数epsilon，用于防止分母为0的情况，保证数值稳定性
+        self.epsilon = 0.0001
 
+    def forward(self, x):
+        # 获取可学习的权重
+        w = self.w
+        # 对权重进行归一化，确保它们的和为1，避免梯度消失或爆炸
+        weight = w / (torch.sum(w, dim=0) + self.epsilon)
+        # 初始化一个空列表，用于存储加权后的分支
+        result = []
+        # 遍历每个分支，应用归一化后的权重，并将结果添加到result列表中
+        for i in range(self.w_count):
+            result.append(weight[i] * x[i])
+            # 沿着指定的维度（self.d）将加权后的分支连接（concat）起来
+        # 返回连接后的tensor
+        return torch.cat(result, dim=self.d)
+
+from .dysample import DySample
+
+
+class DownSimper(nn.Module):
+    """DownSimper."""
+
+    def __init__(self, c1, c2):
+        super().__init__()
+        self.c = c2 // 2
+        self.cv1 = Conv(c1, self.c, 3, 2, d=3)
+        self.cv2 = Conv(c1, self.c, 1, 1, 0)
+
+    def forward(self, x):
+        x1 = self.cv1(x)
+        x = self.cv2(x)
+        x2, x3 = x.chunk(2, 1)
+        x2 = torch.nn.functional.max_pool2d(x2, 3, 2, 1)
+        x3 = torch.nn.functional.avg_pool2d(x3, 3, 2, 1)
+        return torch.cat((x1, x2, x3), 1)
+
+class SF(nn.Module):
+    '''BiFusion Block in PAN'''
+
+    def __init__(self, in_channels3, out_channels):
+        super().__init__()
+        self.upsample = DySample(out_channels)
+        self.downsample = DownSimper(
+            in_channels3,
+            in_channels3,
+        )
+
+    def forward(self, x):
+        x0 = self.upsample(x[0])
+        x2 = self.downsample(x[2])
+        x3 = torch.cat((x0, x[1], x2), dim=1)
+        return x3
 
 class DFL(nn.Module):
     """

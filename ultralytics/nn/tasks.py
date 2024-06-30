@@ -8,6 +8,9 @@ import torch
 import torch.nn as nn
 
 from ultralytics.nn.modules import (
+    SF,
+    DySample,
+    BiFPN_Concat,
     EfficientMamba_T,
     EfficientMamba_S,
     EfficientMamba_B,
@@ -971,7 +974,7 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
             c2 = args[1] if args[3] else args[1] * 4
         elif m is nn.BatchNorm2d:
             args = [ch[f]]
-        elif m is Concat:
+        elif m in (Concat, BiFPN_Concat):
             c2 = sum(ch[x] for x in f)
         elif m in (Detect, WorldDetect, Segment, Pose, OBB, ImagePoolingAttn):
             args.append([ch[x] for x in f])
@@ -979,6 +982,23 @@ def parse_model(d, ch, verbose=True):  # model_dict, input_channels(3)
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
+        elif m is CBLinear:
+            c2 = args[0]
+            c1 = ch[f]
+            args = [c1, c2, *args[1:]]
+        elif m is DySample:
+            args = [ch[f], *args]
+        elif m is SF:
+            print(f)
+            gg = []
+            if f[1] == 6:
+                args[1] = max_channels
+            c2 = sum(ch[x] for x in f)
+            for g in args:
+                gg.append(make_divisible(g * width, 8))
+            args = gg
+        elif m is CBFuse:
+            c2 = ch[f[-1]]
         else:
             c2 = ch[f]
 
